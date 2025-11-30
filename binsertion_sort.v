@@ -202,6 +202,13 @@ Proof.
       * apply perm_swap.
 Qed.
 
+Lemma binsert_perm: forall x l, Permutation (binsert x l) (x :: l).
+Proof.
+  intros.
+  unfold binsert.
+  apply insert_at_perm.
+Qed.
+
 (**
    O teorema abaixo é o resultado principal a ser provado. Observe que pode ser conveniente dividir esta prova em outras provas menores. Isto significa que a formalização pode ficar mais simples e mais organizada com a inclusão de novos lemas.
  *)
