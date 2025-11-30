@@ -2,7 +2,6 @@ Require Import List.
 Require Import Arith.
 Require Import Lia.
 Import ListNotations.
-
 (**
    A função [bsearch x l] retorna a posição [i] ($0 \leq i \leq |l|-1$) onde [x] deve ser inserido na lista ordenada [l]:
  *)
@@ -38,7 +37,7 @@ Proof.
     + simpl length. apply Nat.lt_le_incl. apply Nat.div_lt.
       * lia.
       * auto.
-  - intros. rewrite <- teq1. rewrite length_skipn. simpl length. apply Nat.sub_lt.
+  - intros. rewrite <- teq1. rewrite skipn_length. simpl length. apply Nat.sub_lt.
     + apply Nat.lt_le_incl. apply Nat.div_lt.
       * lia.
       * auto.
@@ -148,7 +147,7 @@ Proof.
   - intros. rewrite firstn_length_le.
     + simpl length. apply Nat.div_lt; lia.
     + simpl length. apply Nat.lt_le_incl. apply Nat.div_lt; lia.
-  - intros. rewrite <- teq1. rewrite length_skipn. apply Nat.sub_lt.
+  - intros. rewrite <- teq1. rewrite skipn_length. apply Nat.sub_lt.
     + simpl length. apply Nat.lt_le_incl. apply Nat.div_lt; lia.
     + simpl length. apply Nat.div_str_pos. lia.
 Defined.
