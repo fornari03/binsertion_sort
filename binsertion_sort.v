@@ -215,4 +215,18 @@ Qed.
 
 Theorem binsertion_sort_correct: forall l, Sorted le (binsertion_sort l) /\ Permutation l (binsertion_sort l).
 Proof.
-  Admitted.
+  induction l.
+  - (* Caso base: lista vazia *)
+    simpl. split.
+    + apply Sorted_nil.
+    + apply Permutation_refl.
+  - (* Passo indutivo *)
+    simpl. destruct IHl as [H_sorted H_perm].
+    split.
+    + (* Parte da Ordenação (Sorted) *)
+      apply binsert_correct. assumption.
+    + (* Permutação *)
+      transitivity (a :: binsertion_sort l).
+      * constructor. assumption. (* Usa a hipótese de indução H_perm *)
+      * apply Permutation_sym. apply binsert_perm.
+Qed.
