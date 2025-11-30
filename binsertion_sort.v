@@ -188,6 +188,20 @@ Fixpoint binsertion_sort (l: list nat) :=
 Require Import Permutation.
 (* end hide *)
 
+Lemma insert_at_perm: forall n x l, Permutation (insert_at n x l) (x :: l).
+Proof.
+  induction n; simpl; intros.
+  - (* Caso base: n = 0 *)
+    apply Permutation_refl.
+  - (* Passo indutivo *)
+    destruct l as [| h tl].
+    + (* Lista vazia *)
+      simpl. apply Permutation_refl.
+    + transitivity (h :: x :: tl).
+      * constructor. apply IHn.
+      * apply perm_swap.
+Qed.
+
 (**
    O teorema abaixo é o resultado principal a ser provado. Observe que pode ser conveniente dividir esta prova em outras provas menores. Isto significa que a formalização pode ficar mais simples e mais organizada com a inclusão de novos lemas.
  *)
