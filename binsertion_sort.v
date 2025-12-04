@@ -7,6 +7,11 @@ Import ListNotations.
  *)
 
 Require Import Recdef.
+Require Import Wellfounded.
+
+(**
+  Mudamos a busca binaria pra retornar a posicao do primeiro elemento maior igual que X
+*)
 
 Function bsearch x l {measure length l} :=
   match l with
@@ -21,12 +26,10 @@ Function bsearch x l {measure length l} :=
       let l2 := skipn mid l in
       match l2 with
       | [] => 0
-      | h2'::l2' => if (x <? h2')
+      | h2'::l2' => if (x <=? h2')
                     then bsearch x l1
                     else
-                      if x =? h2'
-                      then mid
-                      else mid + (bsearch x l2)
+                      mid + (bsearch x l2)
       end
   end.
 Proof.
@@ -78,11 +81,31 @@ Qed.
 (**
 Também podemos verificar que [bsearch x l] sempre retorna uma posição válida da lista [l]:
  *)
-
-Lemma bsearch_valid_pos: forall l x, 0 <= bsearch x l < length l.
+ 
+(**
+O lema original não está correto, como podemos ver no caso da lista vazia.
+*)
+ 
+Lemma neg_bsearch_valid_pos: ~forall l x, 0 <= bsearch x l < length l.
 Proof.
-  Admitted.
+intro h.
+specialize (h [] 0) .
+rewrite bsearch_equation in h.
+simpl in h.
+lia.
+Qed.
 
+Search (In).
+Lemma bsearch_valid_pos: forall l x, (exists y, In y l /\ x <= y) -> 0 <= bsearch x l < length l.
+Proof.
+  intros. split.
+   - lia.
+   - rewrite bsearch_equation. destruct l. 
+     * inversion H. inversion H0. contradiction.
+     * destruct l. 
+       + simpl. case_eq (x <=? n).
+         -- auto.
+         -- Admitted.
   
 (**
 A seguir, definiremos a função [insert_at i x l] que insere o elemento [x] na posição [i] da lista [l]:
