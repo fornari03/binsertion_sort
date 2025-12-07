@@ -9,10 +9,6 @@ Import ListNotations.
 Require Import Recdef.
 Require Import Wellfounded.
 
-(**
-  Mudamos a busca binaria pra retornar a posicao do primeiro elemento maior igual que X
-*)
-
 Function bsearch x l {measure length l} :=
   match l with
   | [] => 0
@@ -26,10 +22,12 @@ Function bsearch x l {measure length l} :=
       let l2 := skipn mid l in
       match l2 with
       | [] => 0
-      | h2'::l2' => if (x <=? h2')
+      | h2'::l2' => if (x <? h2')
                     then bsearch x l1
                     else
-                      mid + (bsearch x l2)
+                      if x =? h2'
+                      then mid
+                      else mid + (bsearch x l2)
       end
   end.
 Proof.
@@ -95,7 +93,14 @@ simpl in h.
 lia.
 Qed.
 
-Search (In).
+(** 
+nao sei qual seria a versao mais correta de se provar aqui, talvez a primeira pq na segunda teriamos que garantir Sorted l, mas n tenho ctz
+*)
+Lemma bsearch_valid_pos: forall l x, 0 <= bsearch x l <= length l.
+Proof.
+Admitted.
+
+(**
 Lemma bsearch_valid_pos: forall l x, (exists y, In y l /\ x <= y) -> 0 <= bsearch x l < length l.
 Proof.
   intros. split.
@@ -106,7 +111,8 @@ Proof.
        + simpl. case_eq (x <=? n).
          -- auto.
          -- Admitted.
-  
+*)
+
 (**
 A seguir, definiremos a função [insert_at i x l] que insere o elemento [x] na posição [i] da lista [l]:
  *)
@@ -137,10 +143,56 @@ Definition binsert x l :=
 Require Import Sorted.
 (* end hide *)
 
+(**
+Lemas Auxiliares
+*)
+Lemma insert_at_app: forall (l: list nat) (n: nat) (x: nat),
+  n <= length l ->
+  insert_at n x l = (firstn n l) ++ (x :: skipn n l).
+Proof.
+  intros. induction n.
+    - auto.
+    - destruct l.
+      * auto.
+      * simpl. Admitted.
+
+(**
+que disse que dividimos a lista em 2 a partir do idx de x: os elementos menores que x e os maiores ou iguais a x
+*)
+Lemma bsearch_split_properties: forall l x,
+  Sorted le l ->
+  let k := bsearch x l in
+  (forall y, In y (firstn k l) -> y < x) /\ 
+  (forall z, In z (skipn k l) -> x <= z).
+Proof.
+  intros l x Hsort. functional induction (bsearch x l) using bsearch_ind.
+    - split. simpl. intros. contradiction. simpl. intros. contradiction. 
+    - split. simpl. intros. contradiction. simpl. intros. destruct H. apply Nat.leb_le in e0. lia. lia.
+    - split. simpl. intros. apply Nat.leb_gt in e0. lia. intros. apply Nat.leb_gt in e0. destruct H.
+    - split. simpl. intros. contradiction. 
+      * simpl. intros. apply (f_equal (@length nat)) in e0. rewrite skipn_length in e0. assert (Hlen: length (h1 :: h2 :: tl) >= 2). { simpl. lia. } assert (Hdiv: length (h1 :: h2 :: tl) / 2 < length (h1 :: h2 :: tl)).
+        + apply Nat.div_lt. lia. lia.
+        + change (length []) with 0 in e0. lia.
+    - Admitted.
+
+Lemma sorted_join: forall l1 l2 x,
+  Sorted le (l1 ++ l2) -> (* A lista original era ordenada *)
+  (forall y, In y l1 -> y <= x) -> (* Tudo à esquerda é menor/igual a x *)
+  (forall z, In z l2 -> x <= z) -> (* Tudo à direita é maior/igual a x *)
+  Sorted le (l1 ++ x :: l2).
+Proof.
+Admitted.
+
 Theorem binsert_correct: forall l x, Sorted le l -> Sorted le (binsert x l).
 Proof.
-Admitted.    
-
+  intros. unfold binsert. 
+  pose proof (bsearch_split_properties l x H). destruct H0 as [H_le H_ge].
+  assert (H_valid: bsearch x l <= length l). apply bsearch_valid_pos. rewrite insert_at_app; auto.
+    - apply sorted_join. 
+      * rewrite firstn_skipn. auto.
+      * intros. apply Nat.lt_le_incl. apply H_le. auto.
+      * intros. apply H_ge. auto.
+Qed.
 (**
    Alternativamente, podemos construir uma única função que combina a execução de [bsearch] e [insert_at]. A função [binsert x l] a seguir, recebe o elemento [x] e a lista ordenada [l] como argumentos e retorna uma permutação ordenada da lista [x::l]: 
  *)
@@ -184,7 +236,8 @@ Qed.
 As funções [binsert] e [binsert'] representam o mesmo algoritmo:
  *)
 
-Lemma binsert_equiv_binsert': forall l x, binsert x l = binsert' x l.
+(** Precisamos que a lista esteja sortada pro binsert e binsert' funcionar *)
+Lemma binsert_equiv_binsert': forall l x, Sorted le l -> binsert x l = binsert' x l.
 Proof.
 Admitted.
 
@@ -195,6 +248,7 @@ Admitted.
 Corollary binsert'_correct: forall l x, Sorted le l -> Sorted le (binsert' x l).
 Proof.
   intros l x H. rewrite <- binsert_equiv_binsert'. apply binsert_correct. assumption.
+  auto. (** Na minha IDE faltou um auto por algum motivo *)
 Qed.
 
 (**
