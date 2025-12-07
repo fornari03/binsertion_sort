@@ -98,6 +98,17 @@ nao sei qual seria a versao mais correta de se provar aqui, talvez a primeira pq
 *)
 Lemma bsearch_valid_pos: forall l x, 0 <= bsearch x l <= length l.
 Proof.
+(** Inducao na estrutura da funcao *)
+intros. functional induction (bsearch x l) using bsearch_ind.
+  - simpl. lia. 
+  - simpl. lia.
+  - simpl. lia. 
+  - split. lia. apply (f_equal (@length nat)) in e0. rewrite skipn_length in e0. assert (Hlen: length (h1 :: h2 :: tl) >= 2). { simpl. lia. } assert (Hdiv: length (h1 :: h2 :: tl) / 2 < length (h1 :: h2 :: tl)).
+        + apply Nat.div_lt. lia. lia.
+        + change (length []) with 0 in e0. lia.
+  - split. 
+    + apply Nat.le_0_l. (** Todo natural eh maior que 0 *)
+    +
 Admitted.
 
 (**
@@ -174,7 +185,7 @@ Proof.
       * simpl. intros. apply (f_equal (@length nat)) in e0. rewrite skipn_length in e0. assert (Hlen: length (h1 :: h2 :: tl) >= 2). { simpl. lia. } assert (Hdiv: length (h1 :: h2 :: tl) / 2 < length (h1 :: h2 :: tl)).
         + apply Nat.div_lt. lia. lia.
         + change (length []) with 0 in e0. lia.
-    - Admitted.
+    - Admitted. 
 
 Lemma sorted_join: forall l1 l2 x,
   Sorted le (l1 ++ l2) -> (* A lista original era ordenada *)
@@ -182,7 +193,16 @@ Lemma sorted_join: forall l1 l2 x,
   (forall z, In z l2 -> x <= z) -> (* Tudo à direita é maior/igual a x *)
   Sorted le (l1 ++ x :: l2).
 Proof.
-Admitted.
+simpl. intros. induction l1.
+  - constructor. 
+    * simpl in H. assumption.
+    * destruct l2. auto. constructor. apply H1. simpl. left. reflexivity.
+  - inversion H. subst. constructor.
+    * apply IHl1. auto. intros. apply H0. simpl.  right. assumption.
+    * destruct l1. 
+      + constructor. apply H0.  simpl. left. reflexivity. 
+      + constructor. inversion H5. assumption. 
+Qed. 
 
 Theorem binsert_correct: forall l x, Sorted le l -> Sorted le (binsert x l).
 Proof.
@@ -192,7 +212,7 @@ Proof.
     - apply sorted_join. 
       * rewrite firstn_skipn. auto.
       * intros. apply Nat.lt_le_incl. apply H_le. auto.
-      * intros. apply H_ge. auto.
+      * intros. apply H_ge. auto. 
 Qed.
 (**
    Alternativamente, podemos construir uma única função que combina a execução de [bsearch] e [insert_at]. A função [binsert x l] a seguir, recebe o elemento [x] e a lista ordenada [l] como argumentos e retorna uma permutação ordenada da lista [x::l]: 
