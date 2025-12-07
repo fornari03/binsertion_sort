@@ -150,11 +150,12 @@ Lemma insert_at_app: forall (l: list nat) (n: nat) (x: nat),
   n <= length l ->
   insert_at n x l = (firstn n l) ++ (x :: skipn n l).
 Proof.
-  intros. induction n.
-    - auto.
-    - destruct l.
+  intros. generalize dependent l. induction n.
+    - intros.  auto.
+    - intros. destruct l.
       * auto.
-      * simpl. Admitted.
+      * simpl. f_equal. apply IHn.  simpl in H. lia.
+Qed.
 
 (**
 que disse que dividimos a lista em 2 a partir do idx de x: os elementos menores que x e os maiores ou iguais a x
